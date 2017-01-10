@@ -1,8 +1,9 @@
 (function(angular, $) {
     'use strict';
     angular.module('FileManagerApp').controller('FileManagerCtrl', [
-        '$scope', '$rootScope', '$window', '$translate', 'fileManagerConfig', 'item', 'fileNavigator', 'apiMiddleware',
-        function($scope, $rootScope, $window, $translate, fileManagerConfig, Item, FileNavigator, ApiMiddleware) {
+        '$scope', '$rootScope', '$window', '$translate', '$location', 'fileManagerConfig', 'item', 'fileNavigator',
+        'apiMiddleware',
+        function($scope, $rootScope, $window, $translate, $location, fileManagerConfig, Item, FileNavigator, ApiMiddleware) {
 
         var $storage = $window.localStorage;
         $scope.config = fileManagerConfig;
@@ -119,7 +120,32 @@
         };
 
         $scope.smartClick = function(item) {
+            // Click on item
+            if(item === undefined){
+                $location.path('/');
+                return
+            }
+            var path = item.model.fullPath();
+            if(item.isFolder()){
+                path += '/';
+            }
+            $location.path(path);
+        };
+
+        $scope.changeItem = function(path){
             var pick = $scope.config.allowedActions.pickFiles;
+            // emulate item structure
+            var item = {
+                isFolder: function () {
+                    return _.endsWith(path, '/');
+                },
+                model: {
+                    fullPath: function () {
+                        return path;
+                    }
+                }
+            };
+
             if (item.isFolder()) {
                 return $scope.fileNavigator.folderClick(item);
             }
@@ -354,7 +380,21 @@
 
         $scope.changeLanguage(getQueryParam('lang'));
         $scope.isWindows = getQueryParam('server') === 'Windows';
+
+        // $scope.fileNavigator.refresh();
+
+        // sidebar tree
         $scope.fileNavigator.refresh();
+        var directories = $location.path().split('/');
+        directories = directories.splice(1, directories.length-1);
+        angular.forEach(directories, function (value, i) {
+            $scope.fileNavigator.currentPath = directories.slice(0, i+1);
+            $scope.fileNavigator.refresh();
+        });
+
+        $rootScope.$on('$locationChangeSuccess', function () {
+            $scope.changeItem($location.path());
+        });
 
     }]);
 })(angular, jQuery);

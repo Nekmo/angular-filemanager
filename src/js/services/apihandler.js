@@ -1,7 +1,22 @@
+function updateItem(item){
+    item.type = (item.type == 'directory' ? 'dir' : item.type);
+    return item;
+}
+
+function updateResult(result) {
+    var data;
+    if(result.error){
+        data = {success: false, error: result.error.message};
+    } else {
+        data = {success: true, error: null};
+    }
+    return {result: data}
+}
+
 (function(angular, $) {
     'use strict';
-    angular.module('FileManagerApp').service('apiHandler', ['$http', '$q', '$window', '$translate', 'Upload',
-        function ($http, $q, $window, $translate, Upload) {
+    angular.module('FileManagerApp').service('apiHandler', ['$http', '$q', '$window', '$translate', 'Upload', 'API',
+        function ($http, $q, $window, $translate, Upload, API) {
 
         $http.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -34,25 +49,33 @@
         };
 
         ApiHandler.prototype.list = function(apiUrl, path, customDeferredHandler, exts) {
+
             var self = this;
             var dfHandler = customDeferredHandler || self.deferredHandler;
             var deferred = $q.defer();
-            var data = {
-                action: 'list',
-                path: path,
-                fileExtensions: exts && exts.length ? exts : undefined
-            };
+            // var data = {
+            //     action: 'list',
+            //     path: path,
+            //     fileExtensions: exts && exts.length ? exts : undefined
+            // };
 
             self.inprocess = true;
             self.error = '';
 
-            $http.post(apiUrl, data).success(function(data, code) {
-                dfHandler(data, deferred, code);
-            }).error(function(data, code) {
-                dfHandler(data, deferred, code, 'Unknown error listing, check the response');
-            })['finally'](function() {
+            // $http.post(apiUrl, data).success(function(data, code) {
+            //     dfHandler(data, deferred, code);
+            // }).error(function(data, code) {
+            //     dfHandler(data, deferred, code, 'Unknown error listing, check the response');
+            // })['finally'](function() {
+            //     self.inprocess = false;
+            // });
+
+            API.list(path).then(function (data) {
+                data = _.map(data, updateItem);
+                dfHandler({result: data}, deferred, 200);
                 self.inprocess = false;
             });
+
             return deferred.promise;
         };
 
@@ -72,7 +95,7 @@
             self.inprocess = true;
             self.error = '';
             $http.post(apiUrl, data).success(function(data, code) {
-                self.deferredHandler(data, deferred, code);
+                self.deferredHandler({result: data}, deferred, code);
             }).error(function(data, code) {
                 self.deferredHandler(data, deferred, code, $translate.instant('error_copying'));
             })['finally'](function() {
@@ -104,20 +127,26 @@
         ApiHandler.prototype.remove = function(apiUrl, items) {
             var self = this;
             var deferred = $q.defer();
-            var data = {
-                action: 'remove',
-                items: items
-            };
+            // var data = {
+            //     action: 'remove',
+            //     items: items
+            // };
 
             self.inprocess = true;
             self.error = '';
-            $http.post(apiUrl, data).success(function(data, code) {
-                self.deferredHandler(data, deferred, code);
-            }).error(function(data, code) {
-                self.deferredHandler(data, deferred, code, $translate.instant('error_deleting'));
-            })['finally'](function() {
+            // $http.post(apiUrl, data).success(function(data, code) {
+            //     self.deferredHandler(data, deferred, code);
+            // }).error(function(data, code) {
+            //     self.deferredHandler(data, deferred, code, $translate.instant('error_deleting'));
+            // })['finally'](function() {
+            //     self.inprocess = false;
+            // });
+
+            API.delete(items).then(function (data) {
+                self.deferredHandler(updateResult(data), deferred, 200);
                 self.inprocess = false;
             });
+
             return deferred.promise;
         };
 
@@ -200,20 +229,29 @@
         ApiHandler.prototype.rename = function(apiUrl, itemPath, newPath) {
             var self = this;
             var deferred = $q.defer();
-            var data = {
-                action: 'rename',
-                item: itemPath,
-                newItemPath: newPath
-            };
+
+            // var data = {
+            //     action: 'rename',
+            //     item: itemPath,
+            //     newItemPath: newPath
+            // };
+
             self.inprocess = true;
             self.error = '';
-            $http.post(apiUrl, data).success(function(data, code) {
-                self.deferredHandler(data, deferred, code);
-            }).error(function(data, code) {
-                self.deferredHandler(data, deferred, code, $translate.instant('error_renaming'));
-            })['finally'](function() {
+
+            // $http.post(apiUrl, data).success(function(data, code) {
+            //     self.deferredHandler(data, deferred, code);
+            // }).error(function(data, code) {
+            //     self.deferredHandler(data, deferred, code, $translate.instant('error_renaming'));
+            // })['finally'](function() {
+            //     self.inprocess = false;
+            // });
+
+            API.rename(itemPath, newPath).then(function (data) {
+                self.deferredHandler(updateResult(data), deferred, 200);
                 self.inprocess = false;
             });
+
             return deferred.promise;
         };
 

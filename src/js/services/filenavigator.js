@@ -54,11 +54,12 @@
                 self.currentPath = this.getBasePath();
             }
             var path = self.currentPath.join('/');
+            var currentPath = self.currentPath;
             self.requesting = true;
             self.fileList = [];
             return self.list().then(function(data) {
                 self.fileList = (data.result || []).map(function(file) {
-                    return new Item(file, self.currentPath);
+                    return new Item(file, currentPath);
                 });
                 self.buildTree(path);
                 self.onRefresh();
@@ -68,6 +69,10 @@
         };
         
         FileNavigator.prototype.buildTree = function(path) {
+            if(_.endsWith(path, '/')){
+                path = path.slice(0, path.length-1);
+            }
+
             var flatNodes = [], selectedNode = {};
 
             function recursive(parent, item, path) {
