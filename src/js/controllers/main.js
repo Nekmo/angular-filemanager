@@ -1,6 +1,13 @@
 (function(angular, $) {
     'use strict';
-    angular.module('FileManagerApp').controller('FileManagerCtrl', [
+    angular.module('FileManagerApp')
+
+        .config(function($locationProvider) {
+            $locationProvider.html5Mode(true).hashPrefix('');
+        })
+
+
+        .controller('FileManagerCtrl', [
         '$scope', '$rootScope', '$window', '$translate', '$location', 'fileManagerConfig', 'item', 'fileNavigator',
         'apiMiddleware',
         function($scope, $rootScope, $window, $translate, $location, fileManagerConfig, Item, FileNavigator, ApiMiddleware) {
@@ -157,16 +164,18 @@
                 }
             }
 
-            if (item.isImage()) {
-                if ($scope.config.previewImagesInModal) {
-                    return $scope.openImagePreview(item);
-                } 
-                return $scope.apiMiddleware.download(item, true);
-            }
-            
-            if (item.isEditable()) {
-                return $scope.openEditItem(item);
-            }
+            // TODO:
+            //
+            // if (item.isImage()) {
+            //     if ($scope.config.previewImagesInModal) {
+            //         return $scope.openImagePreview(item);
+            //     }
+            //     return $scope.apiMiddleware.download(item, true);
+            // }
+            //
+            // if (item.isEditable()) {
+            //     return $scope.openEditItem(item);
+            // }
         };
 
         $scope.openImagePreview = function() {
