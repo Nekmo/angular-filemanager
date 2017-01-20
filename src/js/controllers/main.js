@@ -132,9 +132,14 @@
                 $location.path('/');
                 return
             }
-            var path = item.model.fullPath();
-            if(item.isFolder()){
-                path += '/';
+            var path;
+            if(_.has(item, 'model')){
+                path = item.model.fullPath();
+                if(item.isFolder()){
+                    path += '/';
+                }
+            } else {
+                path = item;
             }
             $location.path(path);
         };
@@ -372,6 +377,15 @@
                 var errorMsg = data.result && data.result.error || $translate.instant('error_uploading_files');
                 $scope.apiMiddleware.apiHandler.error = errorMsg;
             });
+        };
+
+        $scope.getPathByIndex = function (key) {
+            var path = '/' + $scope.fileNavigator.currentPath.splice(0, key+1).join('/') + '/';
+            return path;
+        };
+
+        $scope.getBreadcrumb = function () {
+            return $scope.fileNavigator.currentPath.slice(0, -1);
         };
 
         var validateSamePath = function(item) {

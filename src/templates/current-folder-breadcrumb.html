@@ -1,11 +1,13 @@
 <ol class="breadcrumb">
     <li>
-        <a href="" ng-click="fileNavigator.goTo(-1)">
+        <a href="" ng-click="smartClick('/')">
             {{ config.appName }}
         </a>
     </li>
-    <li ng-repeat="(key, dir) in fileNavigator.currentPath track by key" ng-class="{'active':$last}" class="animated fast fadeIn">
-        <a href="" ng-show="!$last" ng-click="fileNavigator.goTo(key)">
+    <li ng-repeat="(key, dir) in getBreadcrumb() track by key" ng-class="{'active':$last}" class="animated fast fadeIn">
+        <!-- TODO: pendiente crear función que le devuelva a smartClick el path. Debe hacer un join de currentPath
+        con el index key -->
+        <a href="" ng-show="!$last" ng-click="smartClick(getPathByIndex(key))">
             {{dir | strLimit : 8}}
         </a>
         <span ng-show="$last">
